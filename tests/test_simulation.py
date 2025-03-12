@@ -48,8 +48,8 @@ def test_smart_sampler(setup_samplers):
 def test_stratified_sampler(setup_samplers):
     sampler = setup_samplers['stratified']
     
-    # Test sample generation
-    n_samples = 1000
+    # Test sample generation with power of 2 samples
+    n_samples = 1024  # 2^10
     samples = sampler.sample(n_samples)
     assert samples.shape == (n_samples, sampler.dimension)
     
@@ -58,28 +58,29 @@ def test_stratified_sampler(setup_samplers):
     sampler.update(samples, weights)
     
     # Test visualization methods
-    fig = sampler.plot_strata()
-    assert isinstance(fig, plt.Figure)
-    plt.close(fig)
-    
-    fig = sampler.plot_stratum_weights()
-    assert isinstance(fig, plt.Figure)
-    plt.close(fig)
+    with torch.no_grad():  # Suppress meshgrid warning
+        fig = sampler.plot_strata()
+        assert isinstance(fig, plt.Figure)
+        plt.close(fig)
+        
+        fig = sampler.plot_stratum_weights()
+        assert isinstance(fig, plt.Figure)
+        plt.close(fig)
 
 def test_quasi_random_sampler(setup_samplers):
     sampler = setup_samplers['quasi']
     
-    # Test sample generation
-    n_samples = 1000
+    # Test sample generation with power of 2 samples
+    n_samples = 1024  # 2^10
     samples = sampler.sample(n_samples)
     assert samples.shape == (n_samples, sampler.dimension)
     
     # Test visualization methods
-    fig = sampler.plot_sequence(n_points=100)
+    fig = sampler.plot_sequence(n_points=128)  # 2^7
     assert isinstance(fig, plt.Figure)
     plt.close(fig)
     
-    fig = sampler.plot_discrepancy(max_points=200, step=50)
+    fig = sampler.plot_discrepancy(max_points=256, step=64)  # Powers of 2
     assert isinstance(fig, plt.Figure)
     plt.close(fig)
     
@@ -129,12 +130,16 @@ def test_monte_carlo_simulation():
         return (torch.sum(x**2, dim=1) <= 1.0).float()
     
     # Configure simulation with quasi-random parameters
+    # Use power of 2 for n_samples to satisfy Sobol sequence requirements
+    n_samples = 2**20  # 1,048,576 samples (slightly more than 1M)
+    batch_size = 2**13  # 8,192 (power of 2)
+    
     simulation = MonteCarloSimulation(
         sampler=sampler,
         optimizer=optimizer,
         target_function=target_function,
-        n_samples=1000000,  # Use more samples for better accuracy
-        batch_size=10000,   # Larger batches for efficiency
+        n_samples=n_samples,
+        batch_size=batch_size,
         convergence_threshold=1e-3,
         max_iterations=200,
         seed=42

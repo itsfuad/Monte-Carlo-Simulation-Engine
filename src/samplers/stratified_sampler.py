@@ -39,9 +39,8 @@ class StratifiedSampler(BaseSampler):
         samples_per_stratum = n_samples // len(self.strata_weights)
         remainder = n_samples % len(self.strata_weights)
         
-        # Generate grid of strata
-        grid = torch.meshgrid(*[torch.linspace(0, 1, self.strata_per_dim) 
-                               for _ in range(self.dimension)])
+        # Create grid points
+        grid = torch.meshgrid(*[torch.linspace(0, 1, self.strata_per_dim) for _ in range(self.dimension)], indexing='ij')
         strata_centers = torch.stack([g.flatten() for g in grid], dim=1)
         
         # Generate samples within each stratum
