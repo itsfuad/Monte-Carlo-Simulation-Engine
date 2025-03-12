@@ -1,14 +1,16 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mc_sim_engine",
+    name="mc-sim-engine",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
         "numpy",
         "torch",
-        "scipy",
         "matplotlib",
+        "scipy",
+        "seaborn",
         "tqdm"
     ],
+    python_requires=">=3.8",
 ) 

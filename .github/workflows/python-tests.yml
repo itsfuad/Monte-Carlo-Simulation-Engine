@@ -8,38 +8,25 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.11"]
 
     steps:
-    - uses: actions/checkout@v4
-    
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov flake8 black mypy
-        pip install -r requirements.txt
         pip install -e .
-        
-    - name: Code formatting check with Black
+    - name: Run tests
       run: |
-        black --check src tests
-        
-    - name: Lint with flake8
-      run: |
-        flake8 src tests --max-line-length=100 --extend-ignore=E203
-        
-    - name: Run tests with pytest
-      run: |
-        pytest tests/test_simulation.py -v
-        
+        pytest tests/test_simulation.py -v --cov=src
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:

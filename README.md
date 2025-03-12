@@ -108,11 +108,6 @@ Run linting:
 flake8 src tests
 ```
 
-Run type checking:
-```bash
-mypy src tests
-```
-
 ## Project Structure
 
 ```
@@ -129,8 +124,7 @@ mc-sim-engine/
 ├── tests/
 │   └── test_simulation.py   # Test suite
 ├── requirements.txt         # Project dependencies
-├── setup.cfg               # Tool configurations
-├── run_tests.bat          # Windows test runner
+├── *.bat                    # Batch files
 └── README.md
 ```
 
