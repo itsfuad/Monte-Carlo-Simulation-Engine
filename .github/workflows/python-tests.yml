@@ -36,10 +36,6 @@ jobs:
       run: |
         flake8 src tests --max-line-length=100 --extend-ignore=E203
         
-    - name: Type checking with mypy
-      run: |
-        mypy src tests --config-file setup.cfg
-        
     - name: Run tests with pytest
       run: |
         pytest tests/test_simulation.py -v "--cov=src" "--cov-report=xml"

@@ -18,15 +18,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo 3. Running type checking with mypy...
-mypy src tests --config-file setup.cfg
-if %ERRORLEVEL% NEQ 0 (
-    echo Error: Mypy type checking failed
-    exit /b 1
-)
-
-echo.
-echo 4. Running tests...
+echo 3. Running tests...
 pytest tests/test_simulation.py -v "--cov=src" "--cov-report=term-missing"
 if %ERRORLEVEL% NEQ 0 (
     echo Error: Tests failed

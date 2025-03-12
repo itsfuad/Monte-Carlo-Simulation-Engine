@@ -150,8 +150,7 @@ Before pushing your changes, run the prepare script to ensure all checks pass:
 This script will:
 1. Format code with Black
 2. Run flake8 linting
-3. Perform type checking with mypy
-4. Run tests with coverage
+3. Run tests with coverage
 
 Only push your code if all checks pass successfully.
 
@@ -167,9 +166,4 @@ black src tests
 Run linting:
 ```bash
 flake8 src tests --max-line-length=100 --extend-ignore=E203
-```
-
-Run type checking:
-```bash
-mypy src tests --config-file setup.cfg
 ```
