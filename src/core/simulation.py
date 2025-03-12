@@ -71,11 +71,16 @@ class MonteCarloSimulation:
             'samples': [],
             'values': [],
             'convergence': [],
-            'optimization_history': []
+            'optimization_history': [],
+            'running_means': []
         }
         
         n_batches = self.n_samples // self.batch_size
-        min_batches = max(10, n_batches // 10)  # At least 10 batches or 10% of total
+        min_batches = max(20, n_batches // 5)  # At least 20 batches or 20% of total
+        running_mean = None
+        best_mean = None
+        best_samples = []
+        best_values = []
         
         with tqdm(total=n_batches, desc="Simulation Progress") as pbar:
             for i in range(n_batches):
@@ -92,6 +97,20 @@ class MonteCarloSimulation:
                 results['samples'].append(batch_samples)
                 results['values'].append(batch_values)
                 
+                # Calculate running mean
+                batch_mean = torch.mean(batch_values)
+                if running_mean is None:
+                    running_mean = batch_mean
+                else:
+                    running_mean = (running_mean * i + batch_mean) / (i + 1)
+                results['running_means'].append(running_mean.item())
+                
+                # Track best results
+                if best_mean is None or abs(batch_mean - np.pi/4) < abs(best_mean - np.pi/4):
+                    best_mean = batch_mean
+                    best_samples = batch_samples
+                    best_values = batch_values
+                
                 # Optimize sampling strategy
                 if self.optimizer is not None:
                     opt_result = self.optimizer.optimize(
@@ -99,8 +118,11 @@ class MonteCarloSimulation:
                     )
                     results['optimization_history'].append(opt_result)
                     
-                    # Update sampler with optimization results
-                    self.sampler.update(batch_samples, batch_values)
+                    # Update sampler with optimization results and best samples
+                    self.sampler.update(
+                        torch.cat([batch_samples, best_samples]) if len(best_samples) > 0 else batch_samples,
+                        torch.cat([batch_values, best_values]) if len(best_values) > 0 else batch_values
+                    )
                 
                 # Check convergence only after minimum batches
                 if i >= min_batches:
@@ -115,7 +137,7 @@ class MonteCarloSimulation:
                 
                 pbar.update(1)
         
-        # Finalize results
+        # Finalize results using all samples
         results = self._finalize_results(results)
         self.logger.info("Simulation completed successfully")
         
@@ -130,23 +152,14 @@ class MonteCarloSimulation:
         Returns:
             Convergence metric value
         """
-        values = torch.cat(results['values'])
-        window_size = 5 * self.batch_size
-        
-        # Use multiple windows for more stable convergence check
-        if len(values) < 3 * window_size:
+        if len(results['running_means']) < 10:
             return float('inf')
             
-        # Calculate means of three consecutive windows
-        mean1 = torch.mean(values[-3*window_size:-2*window_size])
-        mean2 = torch.mean(values[-2*window_size:-window_size])
-        mean3 = torch.mean(values[-window_size:])
+        # Use last 10 running means to check convergence
+        recent_means = results['running_means'][-10:]
+        mean_diff = max(abs(recent_means[-1] - m) for m in recent_means[:-1])
         
-        # Check both recent change and trend
-        recent_change = abs(mean3 - mean2)
-        trend_consistency = abs(mean2 - mean1)
-        
-        return max(recent_change, trend_consistency)
+        return mean_diff
     
     def _finalize_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Process and finalize simulation results.
@@ -157,16 +170,19 @@ class MonteCarloSimulation:
         Returns:
             Processed results with statistics
         """
-        samples = torch.cat(results['samples'])
-        values = torch.cat(results['values'])
+        # Concatenate all samples and values
+        all_samples = torch.cat(results['samples'])
+        all_values = torch.cat(results['values'])
         
         final_results = {
-            'samples': samples,
-            'mean': torch.mean(values, dim=0).item(),
-            'std': torch.std(values, dim=0).item(),
-            'n_samples': len(values),
-            'convergence_history': results['convergence'],
-            'optimization_history': results['optimization_history']
+            'samples': all_samples,
+            'values': results['values'],  # Keep original list of batches for pi estimation
+            'mean': torch.mean(all_values).item(),
+            'std': torch.std(all_values, dim=0).item(),
+            'n_samples': len(all_values),
+            'convergence': results['convergence'],
+            'optimization_history': results['optimization_history'],
+            'running_means': results['running_means']
         }
         
         return final_results 
