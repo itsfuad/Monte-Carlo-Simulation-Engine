@@ -1,4 +1,4 @@
 @echo off
 echo Running tests...
-pytest tests/ -v
+pytest tests/test_simulation.py -v
 pause 

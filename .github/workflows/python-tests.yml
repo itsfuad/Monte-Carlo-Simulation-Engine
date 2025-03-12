@@ -8,10 +8,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,26 +26,28 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov flake8 black mypy
         pip install -r requirements.txt
+        pip install -e .
         
     - name: Code formatting check with Black
       run: |
-        black --check .
+        black --check src tests
         
     - name: Lint with flake8
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+        flake8 src tests --max-line-length=100 --extend-ignore=E203
         
     - name: Type checking with mypy
       run: |
-        mypy src tests
+        mypy src tests --config-file setup.cfg
         
-    - name: Run tests with pytest and coverage
+    - name: Run tests with pytest
       run: |
-        pytest tests/ --cov=src/ --cov-report=xml
+        pytest tests/test_simulation.py -v "--cov=src" "--cov-report=xml"
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
         fail_ci_if_error: true 

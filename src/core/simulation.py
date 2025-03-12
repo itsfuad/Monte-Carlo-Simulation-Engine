@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, Tuple
 from .base import BaseSampler, BaseOptimizer
 import logging
 from tqdm import tqdm
@@ -59,6 +59,36 @@ class MonteCarloSimulation:
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.INFO)
         
+    def _process_batch(self, batch_samples: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Process a batch of samples and compute their values."""
+        if self.target_function is not None:
+            batch_values = self.target_function(batch_samples)
+        else:
+            batch_values = torch.ones(self.batch_size)
+        return batch_samples, batch_values
+
+    def _update_running_stats(self, batch_values: torch.Tensor, i: int, running_mean: Optional[torch.Tensor]) -> torch.Tensor:
+        """Update running statistics with new batch values."""
+        batch_mean = torch.mean(batch_values)
+        if running_mean is None:
+            return batch_mean
+        return (running_mean * i + batch_mean) / (i + 1)
+
+    def _optimize_and_update(self, batch_samples: torch.Tensor, batch_values: torch.Tensor, 
+                           best_samples: torch.Tensor, best_values: torch.Tensor) -> Dict[str, Any]:
+        """Run optimization step and update sampler."""
+        opt_result = self.optimizer.optimize(batch_samples, batch_values) if self.optimizer else {}
+        
+        if len(best_samples) > 0:
+            self.sampler.update(
+                torch.cat([batch_samples, best_samples]),
+                torch.cat([batch_values, best_values])
+            )
+        else:
+            self.sampler.update(batch_samples, batch_values)
+            
+        return opt_result
+
     def run(self) -> Dict[str, Any]:
         """Run the Monte Carlo simulation.
         
@@ -84,51 +114,34 @@ class MonteCarloSimulation:
         
         with tqdm(total=n_batches, desc="Simulation Progress") as pbar:
             for i in range(n_batches):
-                # Generate samples
+                # Generate and process batch
                 batch_samples = self.sampler.sample(self.batch_size)
-                
-                # Evaluate samples
-                if self.target_function is not None:
-                    batch_values = self.target_function(batch_samples)
-                else:
-                    batch_values = torch.ones(self.batch_size)
+                batch_samples, batch_values = self._process_batch(batch_samples)
                 
                 # Update results
                 results['samples'].append(batch_samples)
                 results['values'].append(batch_values)
                 
-                # Calculate running mean
-                batch_mean = torch.mean(batch_values)
-                if running_mean is None:
-                    running_mean = batch_mean
-                else:
-                    running_mean = (running_mean * i + batch_mean) / (i + 1)
+                # Update statistics
+                running_mean = self._update_running_stats(batch_values, i, running_mean)
                 results['running_means'].append(running_mean.item())
                 
                 # Track best results
+                batch_mean = torch.mean(batch_values)
                 if best_mean is None or abs(batch_mean - np.pi/4) < abs(best_mean - np.pi/4):
                     best_mean = batch_mean
                     best_samples = batch_samples
                     best_values = batch_values
                 
-                # Optimize sampling strategy
+                # Optimization step
                 if self.optimizer is not None:
-                    opt_result = self.optimizer.optimize(
-                        batch_samples, batch_values
-                    )
+                    opt_result = self._optimize_and_update(batch_samples, batch_values, best_samples, best_values)
                     results['optimization_history'].append(opt_result)
-                    
-                    # Update sampler with optimization results and best samples
-                    self.sampler.update(
-                        torch.cat([batch_samples, best_samples]) if len(best_samples) > 0 else batch_samples,
-                        torch.cat([batch_values, best_values]) if len(best_values) > 0 else batch_values
-                    )
                 
-                # Check convergence only after minimum batches
+                # Convergence check
                 if i >= min_batches:
                     convergence = self._check_convergence(results)
                     results['convergence'].append(convergence)
-                    
                     if convergence < self.convergence_threshold:
                         self.logger.info(f"Converged after {i+1} batches")
                         break
