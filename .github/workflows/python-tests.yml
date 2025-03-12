@@ -38,7 +38,7 @@ jobs:
         
     - name: Run tests with pytest
       run: |
-        pytest tests/test_simulation.py -v "--cov=src" "--cov-report=xml"
+        pytest tests/test_simulation.py -v
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
