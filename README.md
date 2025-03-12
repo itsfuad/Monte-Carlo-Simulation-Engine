@@ -1,82 +1,64 @@
 # AI-Optimized Monte Carlo Simulation Engine
 
-An advanced Monte Carlo simulation engine that leverages artificial intelligence for improved sampling efficiency and faster convergence.
+A high-performance Monte Carlo simulation engine that leverages AI techniques for improved sampling and convergence.
 
 ## Features
 
-- **Smart Sampling Strategy (AI-Driven Monte Carlo)**
-  - Machine learning-based prediction of important probability regions
-  - Adaptive sampling to reduce unnecessary computations
-  - Intelligent exploration-exploitation balance
-
-- **Variance Reduction Techniques**
-  - Importance sampling with AI-guided proposal distributions
-  - Stratified sampling implementation
-  - Quasi-random sequence generation (Sobol, Halton)
-
-- **AI-Powered Convergence Acceleration**
-  - Dynamic sample size adjustment
-  - Reinforcement learning for simulation optimization
-  - Real-time error estimation and monitoring
-
-- **Parallel Computation Support**
-  - GPU acceleration using CUDA (via PyTorch)
-  - Multi-processing for CPU-based parallel execution
-  - Efficient task scheduling and load balancing
+- Smart sampling strategies with AI-guided importance sampling
+- Stratified sampling for variance reduction
+- Quasi-random sampling using Sobol sequences
+- Adaptive optimization for parameter tuning
+- Visualization tools for sampling and convergence analysis
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/mc-sim-engine.git
-cd mc-sim-engine
+git clone <repository-url>
+cd MC-Sim-Engine
 ```
 
-2. Create a virtual environment (recommended):
+2. Install dependencies:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-## Project Structure
-
-```
-mc_sim_engine/
-├── src/
-│   ├── core/              # Core simulation components
-│   ├── ai/                # AI optimization modules
-│   ├── samplers/          # Various sampling strategies
-│   ├── variance_reduction/# Variance reduction techniques
-│   └── utils/             # Utility functions
-├── tests/                 # Test suite
-├── examples/              # Usage examples
-└── docs/                  # Documentation
+pip install -e .
 ```
 
 ## Usage
 
-Basic example:
-
+### Basic Example
 ```python
-from mc_sim_engine import MonteCarloSimulation
-from mc_sim_engine.samplers import SmartSampler
+from src.core import MonteCarloSimulation
+from src.samplers import SmartSampler
 
-# Initialize simulation
-sim = MonteCarloSimulation(
-    sampler=SmartSampler(),
-    n_samples=10000,
-    use_gpu=True
+# Define your target function
+def target_function(samples):
+    return (samples ** 2).sum(dim=1) <= 1.0
+
+# Create simulation
+sampler = SmartSampler(dimension=2)
+simulation = MonteCarloSimulation(
+    sampler=sampler,
+    target_function=target_function,
+    n_samples=10000
 )
 
 # Run simulation
-results = sim.run()
+results = simulation.run()
 ```
 
-## Contributing
+### Available Scripts
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- `run_tests.bat`: Run all tests
+- `run_example.bat`: Run basic example
+- `setup_env.bat`: Set up development environment
+
+## Testing
+
+Run tests using:
+```bash
+pytest tests/
+```
+
+## License
+
+MIT License

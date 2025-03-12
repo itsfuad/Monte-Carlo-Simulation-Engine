@@ -75,6 +75,7 @@ class MonteCarloSimulation:
         }
         
         n_batches = self.n_samples // self.batch_size
+        min_batches = max(10, n_batches // 10)  # At least 10 batches or 10% of total
         
         with tqdm(total=n_batches, desc="Simulation Progress") as pbar:
             for i in range(n_batches):
@@ -101,14 +102,16 @@ class MonteCarloSimulation:
                     # Update sampler with optimization results
                     self.sampler.update(batch_samples, batch_values)
                 
-                # Check convergence
-                if i > 0:
+                # Check convergence only after minimum batches
+                if i >= min_batches:
                     convergence = self._check_convergence(results)
                     results['convergence'].append(convergence)
                     
                     if convergence < self.convergence_threshold:
                         self.logger.info(f"Converged after {i+1} batches")
                         break
+                else:
+                    results['convergence'].append(float('inf'))
                 
                 pbar.update(1)
         
@@ -127,15 +130,23 @@ class MonteCarloSimulation:
         Returns:
             Convergence metric value
         """
-        # Simple convergence check based on running mean
         values = torch.cat(results['values'])
-        if len(values) < 2:
+        window_size = 5 * self.batch_size
+        
+        # Use multiple windows for more stable convergence check
+        if len(values) < 3 * window_size:
             return float('inf')
             
-        mean_prev = torch.mean(values[:-self.batch_size])
-        mean_curr = torch.mean(values)
+        # Calculate means of three consecutive windows
+        mean1 = torch.mean(values[-3*window_size:-2*window_size])
+        mean2 = torch.mean(values[-2*window_size:-window_size])
+        mean3 = torch.mean(values[-window_size:])
         
-        return abs(mean_curr - mean_prev)
+        # Check both recent change and trend
+        recent_change = abs(mean3 - mean2)
+        trend_consistency = abs(mean2 - mean1)
+        
+        return max(recent_change, trend_consistency)
     
     def _finalize_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Process and finalize simulation results.
