@@ -137,3 +137,39 @@ mc-sim-engine/
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Development Workflow
+
+### Preparing Code for Push
+
+Before pushing your changes, run the prepare script to ensure all checks pass:
+```bash
+.\prepare_code.bat
+```
+
+This script will:
+1. Format code with Black
+2. Run flake8 linting
+3. Perform type checking with mypy
+4. Run tests with coverage
+
+Only push your code if all checks pass successfully.
+
+### Manual Quality Checks
+
+If you need to run checks individually:
+
+Format code:
+```bash
+black src tests
+```
+
+Run linting:
+```bash
+flake8 src tests --max-line-length=100 --extend-ignore=E203
+```
+
+Run type checking:
+```bash
+mypy src tests --config-file setup.cfg
+```
