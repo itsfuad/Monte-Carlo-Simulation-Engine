@@ -7,7 +7,7 @@ from src.samplers.stratified_sampler import StratifiedSampler
 from src.samplers.quasi_random_sampler import QuasiRandomSampler
 from tqdm import tqdm
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Qt5Agg')  # Use Qt5Agg backend
 import matplotlib.pyplot as plt
 
 def estimate_pi_with_sampler(sampler, n_samples: int, n_runs: int = 5) -> tuple[float, float]:
@@ -147,12 +147,8 @@ def run_simulation(problem_name: str, n_samples: int, n_runs: int):
         
         print(f"\nResults for {name} sampler:")
         print(f"Estimated value: {mean_estimate:.10f}")
-        if problem_name == "pi":
-            print(f"Actual value:    {np.pi:.10f}")
-            print(f"Absolute error:  {abs(mean_estimate - np.pi):.2e}")
-        else:
-            print(f"Actual value:    {np.pi:.10f}")  # True value of Gaussian integral
-            print(f"Absolute error:  {abs(mean_estimate - np.pi):.2e}")
+        print(f"Actual value:    {np.pi:.10f}")  # True value of Gaussian integral
+        print(f"Absolute error:  {abs(mean_estimate - np.pi):.2e}")
         print(f"Standard error:   {std_error:.2e}")
         print(f"95% confidence interval: [{mean_estimate - 1.96*std_error:.10f}, {mean_estimate + 1.96*std_error:.10f}]")
     
@@ -164,15 +160,13 @@ def main():
     
     # Run π estimation
     pi_results = run_simulation("pi", n_samples, n_runs)
-    fig = plot_results(pi_results, "pi")
-    plt.savefig('pi_sampler_comparison.png')
-    plt.close()
+    plot_results(pi_results, "pi")
+    plt.show()
     
     # Run Gaussian integral estimation
     gaussian_results = run_simulation("gaussian", n_samples, n_runs)
-    fig = plot_results(gaussian_results, "gaussian")
-    plt.savefig('gaussian_sampler_comparison.png')
-    plt.close()
+    plot_results(gaussian_results, "gaussian")
+    plt.show()
 
 if __name__ == "__main__":
     main() 

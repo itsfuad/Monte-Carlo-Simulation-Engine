@@ -6,6 +6,7 @@ seaborn>=0.12.0
 scipy>=1.10.0
 sobol-seq>=0.2.0
 tqdm>=4.65.0
+PyQt5>=5.15.9
 
 # Testing and development
 pytest>=7.3.1
