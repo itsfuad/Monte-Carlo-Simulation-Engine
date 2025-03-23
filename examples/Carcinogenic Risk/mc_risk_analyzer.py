@@ -11,6 +11,7 @@ class CarcinogenicRiskAnalyzer:
         self.data_file = data_file
         self.n_simulations = 10000  # As used in the paper
         self.acceptable_range = (1e-6, 1e-4)  # Carcinogenic risk acceptable range
+        self.monte_carlo_results = None  # Initialize results container
         self.load_data()
 
     def load_data(self):
@@ -103,12 +104,12 @@ class CarcinogenicRiskAnalyzer:
         percentile_5 = np.percentile(total_risks, 5)
         percentile_95 = np.percentile(total_risks, 95)
         
-        stats_text = f'Risk Statistics:\n'
+        stats_text = 'Risk Statistics:\n'
         stats_text += f'Mean: {np.mean(total_risks):.2e}\n'
         stats_text += f'Median: {np.median(total_risks):.2e}\n'
         stats_text += f'5th percentile: {percentile_5:.2e}\n'
         stats_text += f'95th percentile: {percentile_95:.2e}\n'
-        stats_text += f'\nRisk Range:\n'
+        stats_text += '\nRisk Range:\n'
         stats_text += f'Min: {np.min(total_risks):.2e}\n'
         stats_text += f'Max: {np.max(total_risks):.2e}'
         
@@ -149,7 +150,7 @@ class CarcinogenicRiskAnalyzer:
             # Add mean values for total contributions with adjusted position
             for i, data in enumerate(data_total, 1):
                 mean_val = torch.mean(data)
-                std_val = torch.std(data)
+                std_val = torch.std(data, dim=0)
                 ax1.text(i, 100, f'Mean: {mean_val:.1f}%\nStd: {std_val:.1f}%', 
                         horizontalalignment='center', verticalalignment='bottom')
             
@@ -169,7 +170,7 @@ class CarcinogenicRiskAnalyzer:
             # Add mean and std values for pathway contributions with adjusted position
             for i, data in enumerate(data_pathway, 1):
                 mean_val = torch.mean(data)
-                std_val = torch.std(data)
+                std_val = torch.std(data, dim=0)
                 ax2.text(i, ax2.get_ylim()[1], f'Mean: {mean_val:.1f}%\nStd: {std_val:.1f}%', 
                         horizontalalignment='center', verticalalignment='bottom')
             
@@ -185,27 +186,27 @@ class CarcinogenicRiskAnalyzer:
             print("\nMetal Contribution Analysis:")
             cd_mean = torch.mean(results['cd_total']).item()
             pb_mean = torch.mean(results['pb_total']).item()
-            print(f"\nTotal Metal Contributions:")
-            print(f"Cadmium (Cd): {cd_mean:.1f}% ± {torch.std(results['cd_total']):.1f}%")
-            print(f"Lead (Pb): {pb_mean:.1f}% ± {torch.std(results['pb_total']):.1f}%")
+            print("\nTotal Metal Contributions:")
+            print(f"Cadmium (Cd): {cd_mean:.1f}% ± {torch.std(results['cd_total'], dim=0):.1f}%")
+            print(f"Lead (Pb): {pb_mean:.1f}% ± {torch.std(results['pb_total'], dim=0):.1f}%")
             print(f"\nLeading Cause: {'Cadmium (Cd)' if cd_mean > pb_mean else 'Lead (Pb)'}")
             
             print("\nExposure Pathway Contributions:")
-            print(f"Cd Ingestion: {torch.mean(results['cd_ing']):.1f}% ± {torch.std(results['cd_ing']):.1f}%")
-            print(f"Cd Dermal: {torch.mean(results['cd_derm']):.1f}% ± {torch.std(results['cd_derm']):.1f}%")
-            print(f"Pb Ingestion: {torch.mean(results['pb_ing']):.1f}% ± {torch.std(results['pb_ing']):.1f}%")
-            print(f"Pb Dermal: {torch.mean(results['pb_derm']):.1f}% ± {torch.std(results['pb_derm']):.1f}%")
+            print(f"Cd Ingestion: {torch.mean(results['cd_ing'], dim=0):.1f}% ± {torch.std(results['cd_ing'], dim=0):.1f}%")
+            print(f"Cd Dermal: {torch.mean(results['cd_derm'], dim=0):.1f}% ± {torch.std(results['cd_derm'], dim=0):.1f}%")
+            print(f"Pb Ingestion: {torch.mean(results['pb_ing'], dim=0):.1f}% ± {torch.std(results['pb_ing'], dim=0):.1f}%")
+            print(f"Pb Dermal: {torch.mean(results['pb_derm'], dim=0):.1f}% ± {torch.std(results['pb_derm'], dim=0):.1f}%")
             
             return {
                 'Metals': {
-                    'Cd': (float(torch.mean(results['cd_total'])), float(torch.std(results['cd_total']))),
-                    'Pb': (float(torch.mean(results['pb_total'])), float(torch.std(results['pb_total'])))
+                    'Cd': (float(torch.mean(results['cd_total'], dim=0)), float(torch.std(results['cd_total'], dim=0))),
+                    'Pb': (float(torch.mean(results['pb_total'], dim=0)), float(torch.std(results['pb_total'], dim=0)))
                 },
                 'Pathways': {
-                    'Cd_ingestion': (float(torch.mean(results['cd_ing'])), float(torch.std(results['cd_ing']))),
-                    'Cd_dermal': (float(torch.mean(results['cd_derm'])), float(torch.std(results['cd_derm']))),
-                    'Pb_ingestion': (float(torch.mean(results['pb_ing'])), float(torch.std(results['pb_ing']))),
-                    'Pb_dermal': (float(torch.mean(results['pb_derm'])), float(torch.std(results['pb_derm'])))
+                    'Cd_ingestion': (float(torch.mean(results['cd_ing'], dim=0)), float(torch.std(results['cd_ing'], dim=0))),
+                    'Cd_dermal': (float(torch.mean(results['cd_derm'], dim=0)), float(torch.std(results['cd_derm'], dim=0))),
+                    'Pb_ingestion': (float(torch.mean(results['pb_ing'], dim=0)), float(torch.std(results['pb_ing'], dim=0))),
+                    'Pb_dermal': (float(torch.mean(results['pb_derm'], dim=0)), float(torch.std(results['pb_derm'], dim=0)))
                 }
             }
             
