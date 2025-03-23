@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from typing import Union, Optional, Tuple
-from ..core.base import BaseSampler
+from src.core.base import BaseSampler
 from torch.distributions import Normal
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure

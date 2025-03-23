@@ -1,3 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: scipy in c:\users\fuad hasan\appdata\roaming\python\python313\site-packages (1.15.1)
-Requirement already satisfied: numpy<2.5,>=1.23.5 in c:\users\fuad hasan\appdata\roaming\python\python313\site-packages (from scipy) (2.1.3)

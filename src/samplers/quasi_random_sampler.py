@@ -1,6 +1,6 @@
 import torch
 from typing import Optional, Tuple
-from ..core.base import BaseSampler
+from src.core.base import BaseSampler
 from scipy.stats import qmc
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -46,7 +46,6 @@ class QuasiRandomSampler(BaseSampler):
             weights: Importance weights for each sample
         """
         # Quasi-random sequences don't need updating
-        pass
 
     def reset(self) -> None:
         """Reset the sampler to start sequence from beginning."""

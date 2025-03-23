@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from typing import Optional, Tuple
-from ..core.base import BaseSampler
+from src.core.base import BaseSampler
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import seaborn as sns
