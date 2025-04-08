@@ -3,6 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: Hasan
     given-names: Md. Fuad
+    orcid: "https://orcid.org/0009-0000-4610-5754"
 title: "Monte-Carlo-Simulation-Engine"
 version: 1.0.0
 url: https://github.com/itsfuad/Monte-Carlo-Simulation-Engine
