@@ -1,10 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
+title: "Monte-Carlo-Simulation-Engine"
+version: 1.0.0
+date-released: 2025-03-24
+url: https://github.com/itsfuad/Monte-Carlo-Simulation-Engine
+type: software
 authors:
   - family-names: Hasan
     given-names: Md. Fuad
     orcid: "https://orcid.org/0009-0000-4610-5754"
-title: "Monte-Carlo-Simulation-Engine"
-version: 1.0.0
-url: https://github.com/itsfuad/Monte-Carlo-Simulation-Engine
-date-released: 2025-03-24
